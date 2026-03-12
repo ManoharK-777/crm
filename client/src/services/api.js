@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-// Use exactly the same hostname/port when deployed to Render, but fallback to 5000 in dev
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-  ? 'http://localhost:5000/api' 
-  : '/api';
+// Use VITE_API_URL if provided (e.g., for Cloudflare Pages), otherwise fallback to local/relative paths
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api` 
+  : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:5000/api' 
+      : '/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

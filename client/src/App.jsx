@@ -8,6 +8,8 @@ import Settings from './pages/Settings';
 import Sidebar from './components/Sidebar';
 import Toast from './components/Toast';
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function AppContent() {
   const [authed, setAuthed] = useState(() => !!localStorage.getItem("token"));
   const [sbOpen, setSbOpen] = useState(true);
@@ -36,7 +38,7 @@ function AppContent() {
 
   const fetchLeads = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/leads", {
+      const res = await fetch(`${API_BASE}/api/leads`, {
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
       const data = await res.json();

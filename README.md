@@ -56,8 +56,12 @@ A premium, high-performance CRM application built with the MERN stack (MongoDB, 
 ## 🌐 Deployment
 This project is configured for easy deployment on **Render**, **Railway**, and **Cloudflare Pages**. 
 
-- **Render**: Use the included `render.yaml`.
-- **Cloudflare**: Deploy the `client/dist` folder to Cloudflare Pages.
+- **DigitalOcean**: Use the included `render.yaml`.
+- **Cloudflare Pages (Frontend only)**:
+    1. Connect GitHub to Cloudflare Pages.
+    2. Build command: `npm run build`
+    3. Output directory: `client/dist`
+    4. Set Environment Variable: `VITE_API_URL` to your backend URL.
 
 ---
 Built with excellence by Antigravity AI.
