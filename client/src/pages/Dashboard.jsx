@@ -25,6 +25,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function Dashboard() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -32,8 +33,10 @@ export default function Dashboard() {
     try {
       const { data } = await leadService.getLeads();
       setLeads(data);
+      setError(null);
     } catch (e) {
       console.error('Dashboard error:', e);
+      setError(e.message || 'Failed to connect to backend server');
     } finally {
       setLoading(false);
     }
@@ -50,6 +53,19 @@ export default function Dashboard() {
             boxShadow: '0 0 20px rgba(0,229,255,0.3)'
           }} />
           <span style={{ color: 'var(--t-muted)', fontWeight: 600, fontSize: 13, letterSpacing: '0.5px' }}>Loading analytics…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div style={{ textAlign: 'center', padding: 40, background: 'rgba(255,23,68,0.05)', borderRadius: 20, border: '1px solid rgba(255,23,68,0.2)' }}>
+          <div style={{ color: '#ff1744', fontSize: 40, marginBottom: 16 }}>⚠️</div>
+          <h2 style={{ color: 'var(--t-main)', marginBottom: 8 }}>Connection Error</h2>
+          <p style={{ color: 'var(--t-muted)', marginBottom: 24 }}>{error}</p>
+          <button className="btn-primary" onClick={fetchData}>Try Again</button>
         </div>
       </div>
     );
