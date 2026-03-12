@@ -36,7 +36,9 @@ const PORT = process.env.PORT || 5000;
 
 console.log('Attempting to connect to MongoDB...');
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000 // Fail after 5 seconds instead of hanging
+})
   .then(() => {
     console.log('Successfully connected to MongoDB');
     app.listen(PORT, () => {
