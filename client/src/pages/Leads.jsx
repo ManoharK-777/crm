@@ -95,25 +95,53 @@ export default function Leads({ searchStr, onToast }) {
   });
 
   return (
-    <div style={{ paddingBottom: 40 }}>
+    <div className="page-anim" style={{ paddingBottom: 40 }}>
       {/* Table & Controls wrapper */}
-      <div className="table-container page-anim">
-        <div className="table-header">
-          <h2 className="table-title" style={{ flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <Briefcase size={20} color="var(--primary)" /> 
-              All Leads <span style={{ fontSize: 13, color: 'var(--t-muted)', fontWeight: 500, background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 99 }}>{filteredLeads.length} {filteredLeads.length !== leads.length && `of ${leads.length}`}</span>
-            </div>
-            {searchStr && (
-              <span style={{ fontSize: 13, color: 'var(--t-muted)', fontWeight: 400, background: 'rgba(255,7,58,0.1)', color: 'var(--primary)', padding: '4px 12px', borderRadius: 99, border: '1px solid rgba(255,7,58,0.2)' }}>
-                Searching for: "{searchStr}"
+      <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(0,229,255,0.1)' }}>
+        <div className="table-header" style={{ 
+          padding: '24px 28px', 
+          background: 'linear-gradient(180deg, rgba(0,229,255,0.04), transparent)',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <h2 style={{ 
+              fontSize: 20, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 12, margin: 0 
+            }}>
+              <div style={{ 
+                width: 32, height: 32, borderRadius: 8, background: 'rgba(255,193,7,0.1)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold)'
+              }}>
+                <Briefcase size={18} /> 
+              </div>
+              Leads Database
+              <span style={{ 
+                fontSize: 12, color: 'var(--gold)', fontWeight: 600, background: 'rgba(255,193,7,0.1)', 
+                padding: '2px 10px', borderRadius: 20, border: '1px solid rgba(255,193,7,0.2)', boxShadow: 'var(--shadow-gold)'
+              }}>
+                {filteredLeads.length} Total
               </span>
+            </h2>
+            {searchStr && (
+              <div style={{ fontSize: 13, color: 'var(--t-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Search size={14} color="var(--gold)" /> Showing results for "<span style={{ color: 'var(--gold)', fontWeight: 600 }}>{searchStr}</span>"
+              </div>
             )}
-          </h2>
+          </div>
+
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(0,0,0,0.4)', padding: '4px 12px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: 10, 
+              background: 'rgba(0,0,0,0.3)', padding: '0 16px', height: 44,
+              borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)',
+              transition: 'border-color 0.2s'
+            }}>
               <Filter size={14} color="var(--t-muted)" />
-              <select value={filter} onChange={e => setFilter(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 500, color: 'var(--t-main)', cursor: 'pointer' }}>
+              <select 
+                value={filter} 
+                onChange={e => setFilter(e.target.value)} 
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 14, fontWeight: 500, color: 'white', cursor: 'pointer' }}
+              >
                 <option value="All">All Status</option>
                 <option value="New">New</option>
                 <option value="Contacted">Contacted</option>
@@ -122,54 +150,83 @@ export default function Leads({ searchStr, onToast }) {
               </select>
             </div>
             
-            <button className="btn-primary" onClick={() => { setEditData(null); setShowEdit(true); }}>
-              <Plus size={16} /> Add Lead
+            <button className="btn-primary" style={{ height: 44, padding: '0 20px', background: 'var(--grad-luxury)', border: 'none', boxShadow: 'var(--shadow-gold)', color: '#000', fontWeight: 800 }} onClick={() => { setEditData(null); setShowEdit(true); }}>
+              <Plus size={18} /> Add Lead
             </button>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ padding: 60, textAlign: 'center' }}>
-            <div style={{ width: 20, height: 20, border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px auto' }}></div>
-            <div style={{ color: 'var(--t-muted)', fontSize: 13, fontWeight: 500 }}>Loading connections...</div>
+          <div style={{ padding: 100, textAlign: 'center' }}>
+            <div style={{ 
+              width: 32, height: 32, border: '3px solid rgba(0,229,255,0.1)', 
+              borderTopColor: '#00e5ff', borderRadius: '50%', 
+              animation: 'spin 0.8s linear infinite', margin: '0 auto 16px auto',
+              boxShadow: '0 0 15px rgba(0,229,255,0.2)'
+            }}></div>
+            <div style={{ color: 'var(--t-muted)', fontSize: 14, fontWeight: 500, letterSpacing: '0.5px' }}>Syncing with database...</div>
           </div>
         ) : leads.length === 0 ? (
-          <div className="empty-state" style={{ minHeight: 400, background: 'transparent', border: 'none' }}>
-            <div className="empty-icon"><Inbox size={40} strokeWidth={1.5} /></div>
-            <h3 className="empty-title">Your lead roster is empty</h3>
-            <p className="empty-desc">There are no leads in your CRM yet. Add a lead manually to begin tracking their journey.</p>
+          <div style={{ padding: '100px 40px', textAlign: 'center' }}>
+            <div style={{ 
+              width: 80, height: 80, borderRadius: '24px', background: 'rgba(255,255,255,0.03)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--t-muted)',
+              margin: '0 auto 24px auto', border: '1px solid rgba(255,255,255,0.05)'
+            }}><Inbox size={40} strokeWidth={1.5} /></div>
+            <h3 style={{ fontSize: 20, color: 'white', marginBottom: 8 }}>Your database is empty</h3>
+            <p style={{ color: 'var(--t-muted)', maxWidth: 400, margin: '0 auto 24px auto', fontSize: 15, lineHeight: 1.6 }}>Start growing your pipeline by adding your first lead manually.</p>
             <button className="btn-primary" onClick={() => { setEditData(null); setShowEdit(true); }}>
-              <Plus size={16} /> Create First Lead
+              <Plus size={18} /> Create First Lead
             </button>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr>
-                  <th>Contact Info</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Added On</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <th style={{ padding: '16px 28px', textAlign: 'left', fontSize: 13, color: 'var(--t-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Contact Info</th>
+                  <th style={{ padding: '16px 28px', textAlign: 'left', fontSize: 13, color: 'var(--t-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Source</th>
+                  <th style={{ padding: '16px 28px', textAlign: 'center', fontSize: 13, color: 'var(--t-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Status</th>
+                  <th style={{ padding: '16px 28px', textAlign: 'left', fontSize: 13, color: 'var(--t-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Added On</th>
+                  <th style={{ padding: '16px 28px', textAlign: 'right', fontSize: 13, color: 'var(--t-muted)', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.length > 0 ? filteredLeads.map(lead => (
-                  <tr key={lead._id}>
-                    <td>
-                      <div className="lead-info">
-                        <span className="lead-name">{lead.name}</span>
-                        <span className="lead-email">{lead.email}</span>
+                {filteredLeads.length > 0 ? filteredLeads.map((lead, idx) => (
+                  <tr key={lead._id} className="table-row-hover" style={{ 
+                    borderBottom: '1px solid rgba(255,255,255,0.03)', 
+                    transition: 'background 0.2s',
+                    animation: `fade-up 0.4s ease-out ${idx * 0.03}s both`
+                  }}>
+                    <td style={{ padding: '18px 28px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ 
+                            width: 38, height: 38, borderRadius: 12, 
+                            background: lead.status === 'Converted' ? 'var(--grad-brand)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: 'white', fontWeight: 700, fontSize: 14,
+                            boxShadow: lead.status === 'Converted' ? '0 0 12px rgba(0,229,255,0.2)' : 'none'
+                        }}>
+                          {lead.name.charAt(0)}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ color: 'white', fontWeight: 600, fontSize: 15 }}>{lead.name}</span>
+                          <span style={{ color: 'var(--t-muted)', fontSize: 13 }}>{lead.email}</span>
+                        </div>
                       </div>
                     </td>
-                    <td><span style={{ fontSize: 13, color: 'var(--t-main)', fontWeight: 500 }}>{lead.source}</span></td>
-                    <td>
+                    <td style={{ padding: '18px 28px' }}>
+                      <span style={{ fontSize: 14, color: 'white', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00e5ff' }}></div>
+                        {lead.source}
+                      </span>
+                    </td>
+                    <td style={{ padding: '18px 28px', textAlign: 'center' }}>
                       <select 
                         className={`badge ${lead.status}`} 
                         value={lead.status}
                         onChange={(e) => updateStatus(lead._id, e.target.value)}
-                        style={{ border: 'none', outline: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
+                        style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: 'none', outline: 'none', cursor: 'pointer', margin: '0 auto' }}
                       >
                         <option value="New">New</option>
                         <option value="Contacted">Contacted</option>
@@ -177,27 +234,27 @@ export default function Leads({ searchStr, onToast }) {
                         <option value="Lost">Lost</option>
                       </select>
                     </td>
-                    <td><span style={{ fontSize: 13, color: 'var(--t-muted)' }}>{new Date(lead.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
-                    <td>
-                      <div className="actions-cell">
-                        <button className="action-btn" title="View Notes" onClick={() => { setNoteLead(lead); setShowNotes(true); }}>
-                          <MessageSquare size={16} />
+                    <td style={{ padding: '18px 28px' }}>
+                      <span style={{ fontSize: 14, color: 'var(--t-muted)' }}>{new Date(lead.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </td>
+                    <td style={{ padding: '18px 28px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                        <button className="action-btn" title="View Notes" onClick={() => { setNoteLead(lead); setShowNotes(true); }} style={{ width: 34, height: 34, borderRadius: 8 }}>
+                          <MessageSquare size={15} />
                         </button>
-                        <button className="action-btn" title="Edit Lead" onClick={() => { setEditData(lead); setShowEdit(true); }}>
-                          <Edit2 size={16} />
+                        <button className="action-btn" title="Edit Lead" onClick={() => { setEditData(lead); setShowEdit(true); }} style={{ width: 34, height: 34, borderRadius: 8 }}>
+                          <Edit2 size={15} />
                         </button>
-                        <button className="action-btn delete" title="Delete Lead" onClick={() => setDelConfirm(lead._id)}>
-                          <Trash2 size={16} />
+                        <button className="action-btn delete" title="Delete Lead" onClick={() => setDelConfirm(lead._id)} style={{ width: 34, height: 34, borderRadius: 8 }}>
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan="5">
-                      <div className="empty-state" style={{ background: 'transparent', border: 'none', padding: '40px 20px' }}>
-                        <p style={{ color: 'var(--t-muted)' }}>No leads match your current search and filters.</p>
-                      </div>
+                    <td colSpan="5" style={{ padding: 60, textAlign: 'center' }}>
+                      <div style={{ color: 'var(--t-muted)', fontSize: 14 }}>No leads match your search criteria.</div>
                     </td>
                   </tr>
                 )}

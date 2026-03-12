@@ -1,24 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserPlus, PhoneForwarded, Trophy, ArrowUpRight, TrendingUp, Inbox } from 'lucide-react';
+import { Users, UserPlus, PhoneForwarded, Trophy, ArrowUpRight, TrendingUp, Inbox, Zap, Target, Activity } from 'lucide-react';
 import { leadService } from '../services/api';
-import { 
+import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
+
+// Custom Tooltip
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: 'rgba(6,10,22,0.95)', backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(0,229,255,0.2)', borderRadius: 12,
+        padding: '10px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.8), 0 0 20px rgba(0,229,255,0.15)'
+      }}>
+        <div style={{ color: 'var(--t-muted)', fontSize: 11, fontWeight: 600, letterSpacing: '0.8px', marginBottom: 4 }}>{label}</div>
+        <div style={{ color: '#00e5ff', fontSize: 20, fontWeight: 800 }}>{payload[0].value} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--t-muted)' }}>leads</span></div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Dashboard() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
       const { data } = await leadService.getLeads();
       setLeads(data);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+    } catch (e) {
+      console.error('Dashboard error:', e);
     } finally {
       setLoading(false);
     }
@@ -26,12 +41,15 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 100 }}>
-        <div className="card" style={{ padding: '20px 40px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 16, height: 16, border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-            <span style={{ fontWeight: 500, color: 'var(--t-main)' }}>Loading analytics...</span>
-          </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 48, height: 48, border: '3px solid rgba(0,229,255,0.1)',
+            borderTopColor: '#00e5ff', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            boxShadow: '0 0 20px rgba(0,229,255,0.3)'
+          }} />
+          <span style={{ color: 'var(--t-muted)', fontWeight: 600, fontSize: 13, letterSpacing: '0.5px' }}>Loading analytics…</span>
         </div>
       </div>
     );
@@ -40,11 +58,11 @@ export default function Dashboard() {
   if (leads.length === 0) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div className="empty-state page-anim">
+        <div className="empty-state page-anim" style={{ maxWidth: 440 }}>
           <div className="empty-icon"><Inbox size={32} /></div>
           <h2 className="empty-title">Welcome to LeadCRM</h2>
-          <p className="empty-desc">Your dashboard is looking a little empty. Add your first lead to unlock powerful lead analytics and start closing deals.</p>
-          <button className="btn-primary" onClick={() => window.location.href='/leads'}>
+          <p className="empty-desc">Your dashboard is empty. Add your first lead to unlock powerful analytics and start closing deals.</p>
+          <button className="btn-primary" onClick={() => window.location.href = '/leads'}>
             <UserPlus size={18} /> Add First Lead
           </button>
         </div>
@@ -54,199 +72,253 @@ export default function Dashboard() {
 
   const totals = {
     all: leads.length,
-    new: leads.filter(l => l.status === "New").length,
-    contacted: leads.filter(l => l.status === "Contacted").length,
-    converted: leads.filter(l => l.status === "Converted").length,
-    lost: leads.filter(l => l.status === "Lost").length,
+    new: leads.filter(l => l.status === 'New').length,
+    contacted: leads.filter(l => l.status === 'Contacted').length,
+    converted: leads.filter(l => l.status === 'Converted').length,
+    lost: leads.filter(l => l.status === 'Lost').length,
   };
+  const winRate = ((totals.converted / (totals.all || 1)) * 100).toFixed(1);
 
-  // Mocking area data based on current totals for the demo
   const areaData = [
     { name: 'Jan', leads: Math.floor(totals.all * 0.2) },
-    { name: 'Feb', leads: Math.floor(totals.all * 0.3) },
-    { name: 'Mar', leads: Math.floor(totals.all * 0.45) },
-    { name: 'Apr', leads: Math.floor(totals.all * 0.6) },
-    { name: 'May', leads: Math.floor(totals.all * 0.8) },
-    { name: 'Jun', leads: totals.all }
+    { name: 'Feb', leads: Math.floor(totals.all * 0.32) },
+    { name: 'Mar', leads: Math.floor(totals.all * 0.47) },
+    { name: 'Apr', leads: Math.floor(totals.all * 0.61) },
+    { name: 'May', leads: Math.floor(totals.all * 0.82) },
+    { name: 'Jun', leads: totals.all },
   ];
 
   const recentActivity = [...leads]
-    .sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()))
-    .slice(0, 4);
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 5);
 
-  // Status Distribution Progress Bar Data
   const statusData = [
-    { label: 'New', count: totals.new, color: '#39ff14' },
-    { label: 'Contacted', count: totals.contacted, color: '#ffa500' },
-    { label: 'Converted', count: totals.converted, color: '#ff073a' },
-    { label: 'Lost', count: totals.lost, color: '#a0a0a0' }
+    { label: 'New',       count: totals.new,       color: '#00e5ff', grad: 'linear-gradient(90deg, #00e5ff, #0288d1)' },
+    { label: 'Contacted', count: totals.contacted, color: '#ffb700', grad: 'linear-gradient(90deg, #ffb700, #e65100)' },
+    { label: 'Converted', count: totals.converted, color: '#00e676', grad: 'linear-gradient(90deg, #00e676, #00c853)' },
+    { label: 'Lost',      count: totals.lost,      color: '#5c7a99', grad: 'linear-gradient(90deg, #5c7a99, #2a3a55)' },
   ].filter(s => s.count > 0);
 
+  const statCards = [
+    { label: 'Total Leads',  val: totals.all,       icon: <Users size={20} />,         cls: 'bg-g-blue',   trend: '+12%', trendUp: true,  sub: 'vs last month' },
+    { label: 'New Leads',    val: totals.new,        icon: <UserPlus size={20} />,       cls: 'bg-g-purple', trend: null,   trendUp: false, sub: 'Awaiting outreach' },
+    { label: 'Contacted',    val: totals.contacted,  icon: <PhoneForwarded size={20} />, cls: 'bg-g-orange', trend: null,   trendUp: false, sub: 'Active communication' },
+    { label: 'Win Rate',     val: `${winRate}%`,     icon: <Trophy size={20} />,         cls: 'bg-g-green',  trend: `${totals.converted} deals`, trendUp: true, sub: 'Converted leads' },
+  ];
+
+  const avatarColors = ['#ff1744', '#00e5ff', '#d500f9', '#ffb700', '#00e676'];
+
   return (
-    <div style={{ paddingBottom: 40 }}>
-      {/* Stat Cards */}
+    <div style={{ paddingBottom: 48 }}>
+
+      {/* ── Stat Cards ─────────────────────────────── */}
       <div className="stats-grid page-anim">
-        <div className="stat-card">
-          <div className="stat-top">
-            <span className="stat-label">Total Leads</span>
-            <div className="stat-icon-wrap bg-g-blue">
-              <Users size={20} />
+        {statCards.map((s, i) => (
+          <div key={s.label} className="stat-card" style={{ animationDelay: `${i * 0.07}s` }}>
+            {/* Top glow line */}
+            <div style={{
+              position: 'absolute', top: 0, left: '20%',
+              width: '60%', height: 1,
+              background: i % 2 === 0
+                ? 'linear-gradient(90deg, transparent, rgba(255,23,68,0.5), transparent)'
+                : 'linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent)'
+            }} />
+            <div className="stat-top">
+              <div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+              <div className={`stat-icon-wrap ${s.cls}`}>{s.icon}</div>
+            </div>
+            <div className="stat-val">{s.val}</div>
+            <div className="stat-trend" style={{ color: s.trendUp ? '#00e676' : 'var(--t-muted)' }}>
+              {s.trendUp && <ArrowUpRight size={14} />}
+              {s.trend ? s.trend : s.sub}
+              {!s.trend && <span style={{ color: 'var(--t-dim)', marginLeft: 4, fontWeight: 400 }}>{s.sub !== s.trend && ''}</span>}
             </div>
           </div>
-          <span className="stat-val">{totals.all}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, fontSize: 13, color: '#10b981', fontWeight: 600 }}>
-            <ArrowUpRight size={16} /> 12% from last month
-          </div>
-        </div>
-
-        <div className="stat-card" style={{ animationDelay: '0.05s' }}>
-          <div className="stat-top">
-            <span className="stat-label">New Leads</span>
-            <div className="stat-icon-wrap bg-g-purple">
-              <UserPlus size={20} />
-            </div>
-          </div>
-          <span className="stat-val">{totals.new}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, fontSize: 13, color: 'var(--t-muted)' }}>
-            Awaiting outreach
-          </div>
-        </div>
-
-        <div className="stat-card" style={{ animationDelay: '0.1s' }}>
-          <div className="stat-top">
-            <span className="stat-label">Contacted</span>
-            <div className="stat-icon-wrap bg-g-orange">
-              <PhoneForwarded size={20} />
-            </div>
-          </div>
-          <span className="stat-val">{totals.contacted}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, fontSize: 13, color: 'var(--t-muted)' }}>
-            In active communication
-          </div>
-        </div>
-
-        <div className="stat-card" style={{ animationDelay: '0.15s' }}>
-          <div className="stat-top">
-            <span className="stat-label">Converted</span>
-            <div className="stat-icon-wrap bg-g-green">
-              <Trophy size={20} />
-            </div>
-          </div>
-          <span className="stat-val">{totals.converted}</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 12, fontSize: 13, color: '#10b981', fontWeight: 600 }}>
-            <TrendingUp size={16} /> {(totals.converted / (totals.all || 1) * 100).toFixed(1)}% Win Rate
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Analytics Section */}
-      <div className="page-anim" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 24, marginBottom: 24, animationDelay: '0.2s' }}>
-        
+      {/* ── Charts Row ─────────────────────────────── */}
+      <div className="page-anim" style={{
+        display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)',
+        gap: 20, marginBottom: 20, animationDelay: '0.3s'
+      }}>
+
         {/* Growth Chart */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div className="card" style={{ padding: '24px 20px 16px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, padding: '0 8px' }}>
             <div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--t-main)' }}>Lead Growth</h3>
-              <p style={{ fontSize: 13, color: 'var(--t-muted)', margin: '4px 0 0 0' }}>Total leads acquired over time</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 10,
+                  background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#00e5ff'
+                }}>
+                  <Activity size={16} />
+                </div>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--t-main)', letterSpacing: '-0.3px' }}>Lead Growth</h3>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--t-muted)', marginLeft: 42 }}>Cumulative acquisition over 6 months</p>
             </div>
-            <select className="form-select" style={{ padding: '6px 12px', fontSize: 13, height: 'fit-content' }}>
+            <select className="form-select" style={{ padding: '6px 12px', fontSize: 12, height: 'fit-content', borderRadius: 10 }}>
               <option>Last 6 Months</option>
               <option>This Year</option>
             </select>
           </div>
-          <div style={{ height: 280, marginLeft: -20 }}>
+          <div style={{ height: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={areaData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={areaData} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                  <linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#ff1744" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#ff1744" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradBlue" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%"   stopColor="#ff1744" />
+                    <stop offset="100%" stopColor="#00e5ff" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.06)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--t-muted)', fontWeight: 500 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--t-muted)', fontWeight: 500 }} />
-                <RechartsTooltip 
-                  contentStyle={{ background: 'rgba(10, 12, 16, 0.9)', backdropFilter: 'blur(8px)', borderRadius: 12, border: '1px solid rgba(57, 255, 20, 0.15)', boxShadow: 'var(--shadow-lg)' }}
-                  itemStyle={{ color: 'var(--t-main)', fontWeight: 700 }}
-                />
-                <Area type="monotone" dataKey="leads" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorLeads)" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,229,255,0.05)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--t-muted)', fontWeight: 600, letterSpacing: '0.5px' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--t-muted)', fontWeight: 600 }} />
+                <RechartsTooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="leads" stroke="url(#gradBlue)" strokeWidth={2.5} fillOpacity={1} fill="url(#gradRed)" dot={false} activeDot={{ r: 5, fill: '#00e5ff', stroke: 'rgba(0,229,255,0.3)', strokeWidth: 4 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Status Distribution - Custom Progress Bars */}
+        {/* Status Breakdown */}
         <div className="card">
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--t-main)' }}>Lead Status Breakout</h3>
-            <p style={{ fontSize: 13, color: 'var(--t-muted)', margin: '4px 0 24px 0' }}>Current lead composition</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 10,
+              background: 'rgba(255,23,68,0.1)', border: '1px solid rgba(255,23,68,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#ff1744'
+            }}>
+              <Target size={16} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--t-main)', letterSpacing: '-0.3px' }}>Pipeline</h3>
           </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {statusData.map((status, i) => {
-              const percentage = ((status.count / totals.all) * 100).toFixed(1);
+          <p style={{ fontSize: 12, color: 'var(--t-muted)', marginBottom: 28, marginLeft: 42 }}>Lead status distribution</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            {statusData.map((s) => {
+              const pct = ((s.count / totals.all) * 100).toFixed(1);
               return (
-                <div key={status.label}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
-                    <span style={{ fontWeight: 600, color: 'var(--t-main)' }}>{status.label}</span>
-                    <span style={{ fontWeight: 600, color: 'var(--t-muted)' }}>{status.count} <span style={{ fontSize: 12, fontWeight: 500, opacity: 0.7 }}>({percentage}%)</span></span>
+                <div key={s.label}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, boxShadow: `0 0 6px ${s.color}` }} />
+                      <span style={{ fontWeight: 700, color: 'var(--t-main)', fontSize: 13 }}>{s.label}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontWeight: 800, color: s.color, fontSize: 15 }}>{s.count}</span>
+                      <span style={{ fontSize: 11, color: 'var(--t-muted)', fontWeight: 500 }}>{pct}%</span>
+                    </div>
                   </div>
                   <div className="progress-container">
-                    <div 
-                      className={`progress-bar ${status.label === 'New' ? 'striped' : ''}`}
-                      style={{ 
-                        width: `${percentage}%`, 
-                        background: status.color,
-                        boxShadow: `0 0 10px ${status.color}40`
-                      }} 
-                    />
+                    <div style={{
+                      height: '100%', borderRadius: 'var(--r-full)',
+                      width: `${pct}%`,
+                      background: s.grad,
+                      boxShadow: `0 0 8px ${s.color}60`,
+                      transition: 'width 1.4s cubic-bezier(0.16,1,0.3,1)'
+                    }} />
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {/* Win rate summary */}
+          <div style={{
+            marginTop: 28, padding: 16,
+            background: 'rgba(0,230,118,0.06)',
+            border: '1px solid rgba(0,230,118,0.15)',
+            borderRadius: 12, textAlign: 'center'
+          }}>
+            <div style={{ fontSize: 11, color: 'var(--t-muted)', fontWeight: 600, letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: 4 }}>Overall Win Rate</div>
+            <div style={{ fontSize: 32, fontWeight: 800, color: '#00e676', letterSpacing: '-1px' }}>{winRate}%</div>
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="card page-anim" style={{ padding: 0, animationDelay: '0.3s' }}>
-        <div style={{ padding: '24px 32px', borderBottom: 'var(--border)' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--t-main)' }}>Recent Lead Activity</h3>
+      {/* ── Recent Activity ─────────────────────────────── */}
+      <div className="card page-anim" style={{ padding: 0, animationDelay: '0.45s', overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{
+          padding: '20px 28px',
+          background: 'linear-gradient(135deg, rgba(255,23,68,0.06) 0%, rgba(0,229,255,0.04) 100%)',
+          borderBottom: '1px solid rgba(0,229,255,0.08)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: '#00e676', boxShadow: '0 0 8px #00e676',
+              animation: 'pulse 2s infinite'
+            }} />
+            <h3 style={{ fontSize: 15, fontWeight: 800, color: 'var(--t-main)', letterSpacing: '-0.3px' }}>Recent Activity</h3>
+          </div>
+          <button onClick={() => window.location.href = '/leads'} className="btn-secondary" style={{ padding: '7px 16px', fontSize: 12 }}>
+            View All →
+          </button>
         </div>
-        <div>
-          {recentActivity.map((lead, i) => (
-            <div key={lead._id || i} style={{ 
-              padding: '16px 32px', 
-              borderBottom: i < recentActivity.length - 1 ? '1px solid rgba(0,0,0,0.03)' : 'none',
+
+        {/* Rows */}
+        {recentActivity.map((lead, i) => (
+          <div
+            key={lead._id || i}
+            style={{
+              padding: '14px 28px',
+              borderBottom: i < recentActivity.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              transition: 'var(--trans)', cursor: 'pointer'
+              transition: 'var(--trans)', cursor: 'pointer',
+              animationDelay: `${0.5 + i * 0.05}s`
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ 
-                  width: 44, height: 44, borderRadius: '50%', 
-                  background: 'var(--accent-light)', color: 'var(--primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 700, fontSize: 16, boxShadow: 'inset 0 0 0 1px rgba(255,7,58,0.2)'
-                }}>
-                  {lead.name.charAt(0)}
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t-main)' }}>{lead.name}</div>
-                  <div style={{ fontSize: 13, color: 'var(--t-muted)', marginTop: 2 }}>{lead.email} &bull; via {lead.source}</div>
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,0.03)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              {/* Avatar */}
+              <div style={{
+                width: 42, height: 42, borderRadius: 14, flexShrink: 0,
+                background: `radial-gradient(circle at 30% 30%, ${avatarColors[i % avatarColors.length]}33, ${avatarColors[i % avatarColors.length]}11)`,
+                border: `1px solid ${avatarColors[i % avatarColors.length]}33`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 800, fontSize: 16,
+                color: avatarColors[i % avatarColors.length],
+                boxShadow: `0 0 12px ${avatarColors[i % avatarColors.length]}20`
+              }}>
+                {lead.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--t-main)' }}>{lead.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--t-muted)', marginTop: 2 }}>
+                  {lead.email} &nbsp;·&nbsp;
+                  <span style={{ color: 'rgba(0,229,255,0.6)', fontWeight: 600 }}>{lead.source}</span>
                 </div>
               </div>
-              <span className={`badge ${lead.status}`}>{lead.status}</span>
             </div>
-          ))}
-          {recentActivity.length === 0 && (
-            <div style={{ padding: 40, textAlign: 'center', color: 'var(--t-muted)' }}>No recent activity to show.</div>
-          )}
-        </div>
+            <span className={`badge ${lead.status}`}>{lead.status}</span>
+          </div>
+        ))}
+
+        {recentActivity.length === 0 && (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--t-muted)' }}>No recent activity.</div>
+        )}
       </div>
 
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.8); }
+        }
+      `}</style>
     </div>
   );
 }

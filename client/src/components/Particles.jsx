@@ -43,9 +43,9 @@ const Particles = () => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         
-        let colorStr = "rgba(0,212,255,1)"; // Cyan default
+        let colorStr = "rgba(0,212,255,1)"; // Blue neon default
         if (p.colorType === 1) colorStr = "rgba(155,109,255,0.8)"; // Purple
-        else if (p.colorType === 2) colorStr = "rgba(57,255,20,0.6)"; // Radium
+        else if (p.colorType === 2) colorStr = "rgba(255,7,58,0.7)"; // Red neon
 
         ctx.fillStyle = colorStr;
         ctx.shadowBlur = p.r * 8; // Glowing effect
