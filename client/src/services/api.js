@@ -20,6 +20,7 @@ api.interceptors.request.use((config) => {
 export const leadService = {
   getLeads: () => api.get('/leads'),
   addLead: (lead) => api.post('/leads', lead),
+  updateLead: (id, lead) => api.put(`/leads/${id}`, lead),
   updateStatus: (id, status) => api.patch(`/leads/${id}/status`, { status }),
   addNote: (id, text) => api.post(`/leads/${id}/notes`, { text }),
   deleteLead: (id) => api.delete(`/leads/${id}`),

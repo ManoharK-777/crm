@@ -26,6 +26,22 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Update full lead (Edit modal)
+router.put('/:id', async (req, res) => {
+  try {
+    const { name, email, phone, source, status } = req.body;
+    const lead = await Lead.findByIdAndUpdate(
+      req.params.id,
+      { name, email, phone, source, status },
+      { new: true, runValidators: true }
+    );
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+    res.json(lead);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Update lead status
 router.patch('/:id/status', async (req, res) => {
   try {
