@@ -21,3 +21,7 @@ Thumbs.db
 
 # Vite cache
 client/.vite/
+
+# Database files
+server/leads.json
+
